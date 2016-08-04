@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     Button btnCereal, btnChocolate, btnTea;
     ListView listView;
 
-    ArrayAdapter<String> itemsAdapter;
-    List<String> itemsList;
+    CustomAdapter itemsAdapter;
+    List<GroceryItem> itemsList;
 
     private String getURL(String query) {
         return  "http://api.walmartlabs.com/v1/search?query=" + query +
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
 
         bindViews();
         itemsList = new LinkedList<>();
-        itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, itemsList);
+        itemsAdapter = new CustomAdapter(this, itemsList);
         listView.setAdapter(itemsAdapter);
 
     }
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     }
 
 
-    public List<String> downloadUrl(String myUrl) throws IOException, JSONException {
+    public List<GroceryItem> downloadUrl(String myUrl) throws IOException, JSONException {
         InputStream is = null;
 
         URL url;
@@ -123,11 +123,11 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         }
     }
 
-    private class DownloadTask extends AsyncTask<String, Void, List<String>> {
+    private class DownloadTask extends AsyncTask<String, Void, List<GroceryItem>> {
 
 
         @Override
-        protected List<String> doInBackground(String... strings) {
+        protected List<GroceryItem> doInBackground(String... strings) {
 
             try {
                 return downloadUrl(strings[0]);
@@ -143,10 +143,10 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         }
 
         @Override
-        protected void onPostExecute(List<String> list) {
+        protected void onPostExecute(List<GroceryItem> list) {
             super.onPostExecute(list);
             itemsList.clear();
-            for (String s : list) {
+            for (GroceryItem s : list) {
                 itemsList.add(s);
             }
             Log.i("aaaaaaaaa", "count: " + itemsList.size());
@@ -170,15 +170,17 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     }
 
 
-    private List<String> parseJson(String contentAsString) throws JSONException{
-        List<String> itemList = new LinkedList<>();
+    private List<GroceryItem> parseJson(String contentAsString) throws JSONException{
+        List<GroceryItem> itemList = new LinkedList<>();
 
         JSONObject root = new JSONObject(contentAsString);
         JSONArray itemsArray = root.getJSONArray("items");
 
         for (int i = 0 ; i < itemsArray.length() ; i++){
             JSONObject item = itemsArray.getJSONObject(i);
-            itemList.add(item.getString("name"));
+            String name = item.getString("name");
+            String price = item.getString("salePrice");
+            itemList.add(new GroceryItem(name, price));
             Log.i("iiiiiiii", item.getString("name"));
 
         }
